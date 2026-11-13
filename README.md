@@ -1,97 +1,86 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# Pocket Trader
 
-# Getting Started
+React Native take-home: sign-in, live price list, market order form. Frontend only,
+all data comes from an in-app mock layer.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+**Stack:** <!-- TODO: bare React Native 0.xx (CLI) OR Expo (dev build) — pick one --> ·
+TypeScript (strict) · Redux Toolkit · React Navigation · react-native-keychain ·
+i18next / react-i18next
 
-## Step 1: Start Metro
+## Run it
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
-
-To start the Metro dev server, run the following command from the root of your React Native project:
-
-```sh
-# Using npm
-npm start
-
-# OR using Yarn
-yarn start
+```bash
+yarn install            # or npm install
+cd ios && pod install && cd ..   # iOS only
+yarn ios                # or: yarn android
+yarn test               # unit tests
 ```
 
-## Step 2: Build and run your app
+Login: any email + password `Demo@1234`.
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
+Demo helpers on Market Watch: **Burst (3 calls)** fires 3 authenticated requests at
+once; **Expire token** makes the access token invalid immediately (instead of waiting
+60 s). Press *Expire token*, then *Burst*: all 3 calls get a 401 and the alert reports
+exactly one refresh call.
 
-### Android
+## Architecture
 
-```sh
-# Using npm
-npm run android
-
-# OR using Yarn
-yarn android
+```
+src/
+  api/        ApiClient + PriceFeed interfaces; client.ts is the only file that
+              imports the mocks (swap it for a real backend)
+  mocks/      MockApiClient, MockPriceFeed, static data
+  services/   AuthService (tokens, refresh, retry), TokenStorage (Keychain)
+  store/      Redux slices: auth (signed in or not), account, prices
+  hooks/      usePriceSubscription
+  utils/      orderValidation (pure), tickBatcher (pure), format
+  components/ PriceRow, AccountBar
+  screens/    Login, MarketWatch, Order
+  locales/    en.json, hi.json
+  tests/
 ```
 
-### iOS
+**UI vs data layer.** Screens and state only see the `ApiClient` / `PriceFeed`
+interfaces. Every authenticated call goes through `authService.requestWithAuth`.
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
+**Tokens.** `AuthService` is the single owner of the tokens; Redux only holds
+`isAuthenticated`. Tokens are saved in Keychain/Keystore, never AsyncStorage. On a 401:
+one refresh, one retry. Concurrent 401s share one in-flight refresh promise. A request
+that failed with a token that was already replaced is retried with the new token
+without a second refresh. If the refresh is rejected (401) the session ends and the
+UI returns to Login; a plain network error does not sign the user out. On cold start
+the session is restored from Keychain and the access token renewed.
 
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
+**Live prices.** One shared `PriceFeed`, connected while signed in. Each screen
+subscribes only to the symbols it shows (Market Watch: the filtered list, and nothing
+while another screen is focused; Order: its one symbol). Ticks are collected in a
+batcher (latest tick per symbol, flushed every 200 ms) before one Redux dispatch. The
+reducer ignores ticks that don't change the price. Each `PriceRow` is memoized and
+selects only its own symbol, so a tick re-renders one row, not the list. The
+green/red flash animates the opacity of an overlay on the native driver.
 
-```sh
-bundle install
-```
+**Orders.** Validation is a pure function (`orderValidation.ts`) run against the
+latest price read from the store at tap time. Buy: SL < bid. Sell: SL > ask. Volume is
+checked in integer hundredths to avoid float errors. A ref plus disabled buttons
+prevent double-submit. After success, `GET /accounts/me` is refetched.
 
-Then, and every time you update your native dependencies, run:
+## Assumptions
 
-```sh
-bundle exec pod install
-```
+- Language follows the device (English or Hindi); there is no switcher.
+- Mock orders fill at the live price and deduct a fake $7/lot commission from equity,
+  so the account bar visibly changes.
+- Mock feed prices are rounded to each symbol's `digits`, so what the user sees is
+  what validation compares against.
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
+## AI assistance
 
-```sh
-# Using npm
-npm run ios
+<!-- TODO: be specific. e.g. "Used Claude to review my first draft, and to write
+the order screen, tests and locale files. I read and understand all of it." -->
 
-# OR using Yarn
-yarn ios
-```
+## With more time
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
-
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
-
-## Step 3: Modify your app
-
-Now that you have successfully run the app, let's make changes!
-
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
-
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
-
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
-
-## Congratulations! :tada:
-
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+- Unsubscribe only for rows not on screen (viewability-based subscription).
+- Pause the feed when the app is backgrounded.
+- Component tests for PriceRow / OrderScreen; an e2e happy path.
+- Real language switcher and number/date localisation.
+- Order confirmation step and idempotency key on the order request.

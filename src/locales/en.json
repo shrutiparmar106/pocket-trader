@@ -1,0 +1,66 @@
+{
+  "login": {
+    "title": "Pocket Trader",
+    "subtitle": "Sign in to your account",
+    "email": "Email",
+    "password": "Password",
+    "emailPlaceholder": "Enter email",
+    "passwordPlaceholder": "Enter password",
+    "button": "Login",
+    "demoHint": "Demo password: Demo@1234",
+    "validationTitle": "Missing details",
+    "validationMessage": "Please enter email and password.",
+    "failedTitle": "Login failed"
+  },
+  "account": {
+    "balance": "Balance",
+    "equity": "Equity"
+  },
+  "market": {
+    "title": "Market Watch",
+    "subtitle": "Live bid and ask prices",
+    "searchPlaceholder": "Search symbol (e.g. EURUSD)",
+    "instrument": "Instrument",
+    "bid": "Bid",
+    "ask": "Ask",
+    "spread": "Spread",
+    "loading": "Loading market symbols...",
+    "unavailable": "Market data unavailable",
+    "retry": "Retry",
+    "empty": "No instruments available",
+    "noMatches": "No symbol matches \"{{query}}\"",
+    "debugTitle": "Debug",
+    "burst": "Burst (3 calls)",
+    "expire": "Expire token",
+    "logout": "Log out",
+    "burstResult": "Burst finished: {{ok}} succeeded, {{failed}} failed, {{refreshes}} refresh call(s)."
+  },
+  "order": {
+    "title": "New order",
+    "buy": "Buy",
+    "sell": "Sell",
+    "volume": "Volume (lots)",
+    "volumeHint": "0.01 – 100 lots, step 0.01",
+    "stopLoss": "Stop loss (optional)",
+    "slHintBuy": "For a Buy it must be below the bid ({{price}})",
+    "slHintSell": "For a Sell it must be above the ask ({{price}})",
+    "waitingPrice": "Waiting for a live price...",
+    "submitting": "Sending order...",
+    "successTitle": "Order placed",
+    "successBody": "Ticket #{{ticket}} · {{side}} {{volume}} lots at {{price}}",
+    "failureTitle": "Order failed"
+  },
+  "orderErrors": {
+    "NO_PRICE": "No live price yet. Please wait a moment.",
+    "VOLUME_REQUIRED": "Enter a volume.",
+    "VOLUME_INVALID": "Volume must be a number.",
+    "VOLUME_STEP": "Volume must be in steps of 0.01.",
+    "VOLUME_RANGE": "Volume must be between 0.01 and 100 lots.",
+    "SL_INVALID": "Stop loss must be a valid price.",
+    "SL_BUY_ABOVE_BID": "For a Buy, the stop loss must be below the current bid ({{price}}).",
+    "SL_SELL_BELOW_ASK": "For a Sell, the stop loss must be above the current ask ({{price}})."
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again."
+  }
+}
